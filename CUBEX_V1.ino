@@ -259,9 +259,9 @@ void loop()
   }
   lockvariables=1;
   
-  sprintf(txstring, "$$$$$CUBEX1,%i,%02d:%02d:%02d,%s%i.%05ld,%s%i.%05ld,%ld,%d,%i,%i",count, hour, minute, second,lat < 0 ? "-" : "",lat_int,lat_dec,lon < 0 ? "-" : "",lon_int,lon_dec, maxalt,sats,errorstatus,cameracode);
+  sprintf_P(txstring, PSTR("$$$$$CUBEX1,%i,%02d:%02d:%02d,%s%i.%05ld,%s%i.%05ld,%ld,%d,%i,%i"),count, hour, minute, second,lat < 0 ? "-" : "",lat_int,lat_dec,lon < 0 ? "-" : "",lon_int,lon_dec, maxalt,sats,errorstatus,cameracode);
 
-  sprintf(txstring, "%s*%04X\n", txstring, gps_CRC16_checksum(txstring));
+  sprintf_P(txstring, PSTR("%s*%04X\n"), txstring, gps_CRC16_checksum(txstring));
   maxalt=0;
   lockvariables=0;
   txstringlength=strlen(txstring);
@@ -273,29 +273,32 @@ void loop()
 void setupGPS() {
   //Turning off all GPS NMEA strings apart on the uBlox module
   // Taken from Project Swift (rather than the old way of sending ascii text)
-  uint8_t setNMEAoff[] = {
-    0xB5, 0x62, 0x06, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0xD0, 0x08, 0x00, 0x00, 0x80, 0x25, 0x00, 0x00, 0x07, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0xA9                        };
-  sendUBX(setNMEAoff, sizeof(setNMEAoff)/sizeof(uint8_t));
+  PROGMEM static const uint8_t setNMEAoff[] = {
+    0xB5, 0x62, 0x06, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0xD0, 0x08, 0x00, 0x00, 0x80, 0x25, 0x00, 0x00, 0x07, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0xA9
+  };
+  sendUBX_P(setNMEAoff, sizeof(setNMEAoff)/sizeof(uint8_t));
   wait(500);
   setGPS_DynamicModel6();
   wait(500);
   setGps_MaxPerformanceMode();
   wait(500);
 }
-void sendUBX(uint8_t *MSG, uint8_t len) {
+
+void sendUBX_P(const uint8_t *msg, uint8_t len) {
   Serial.flush();
   Serial.write(0xFF);
   wait(100);
-  for(int i=0; i<len; i++) {
-    Serial.write(MSG[i]);
+  while(len--) {
+    Serial.write(pgm_read_byte(msg++));
   }
 }
 
 uint8_t gps_check_nav(void)
 {
-  uint8_t request[8] = {
-    0xB5, 0x62, 0x06, 0x24, 0x00, 0x00, 0x2A, 0x84                                                                           };
-  sendUBX(request, 8);
+  PROGMEM static const uint8_t request[8] = {
+    0xB5, 0x62, 0x06, 0x24, 0x00, 0x00, 0x2A, 0x84
+  };
+  sendUBX_P(request, 8);
 
   // Get the message back from the GPS
   gps_get_data();
@@ -355,7 +358,7 @@ uint8_t* ckb)
     data++;
   }
 }
-boolean getUBX_ACK(uint8_t *MSG) {
+boolean getUBX_ACK_P(const uint8_t *msg) {
   uint8_t b;
   uint8_t ackByteID = 0;
   uint8_t ackPacket[10];
@@ -368,8 +371,8 @@ boolean getUBX_ACK(uint8_t *MSG) {
   ackPacket[3] = 0x01;	// id
   ackPacket[4] = 0x02;	// length
   ackPacket[5] = 0x00;
-  ackPacket[6] = MSG[2];	// ACK class
-  ackPacket[7] = MSG[3];	// ACK id
+  ackPacket[6] = pgm_read_byte(&msg[2]);	// ACK class
+  ackPacket[7] = pgm_read_byte(&msg[3]);	// ACK id
   ackPacket[8] = 0;		// CK_A
   ackPacket[9] = 0;		// CK_B
 
@@ -412,10 +415,11 @@ void gps_check_lock()
   GPSerror = 0;
   Serial.flush();
   // Construct the request to the GPS
-  uint8_t request[8] = {
+  PROGMEM static const uint8_t request[8] = {
     0xB5, 0x62, 0x01, 0x06, 0x00, 0x00,
-    0x07, 0x16                                                                                                                                  };
-  sendUBX(request, 8);
+    0x07, 0x16
+  };
+  sendUBX_P(request, 8);
 
   // Get the message back from the GPS
   gps_get_data();
@@ -449,32 +453,34 @@ void gps_check_lock()
 void setGPS_DynamicModel6()
 {
   int gps_set_sucess=0;
-  uint8_t setdm6[] = {
+  PROGMEM static const uint8_t setdm6[] = {
     0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,
     0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
     0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,
     0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC                                                                           };
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC
+  };
   while(!gps_set_sucess)
   {
-    sendUBX(setdm6, sizeof(setdm6)/sizeof(uint8_t));
-    gps_set_sucess=getUBX_ACK(setdm6);
+    sendUBX_P(setdm6, sizeof(setdm6)/sizeof(uint8_t));
+    gps_set_sucess=getUBX_ACK_P(setdm6);
   }
 }
 
 void setGPS_DynamicModel3()
 {
   int gps_set_sucess=0;
-  uint8_t setdm3[] = {
+  PROGMEM static const uint8_t setdm3[] = {
     0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x03,
     0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
     0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,
     0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x76                                                                           };
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x76
+  };
   while(!gps_set_sucess)
   {
-    sendUBX(setdm3, sizeof(setdm3)/sizeof(uint8_t));
-    gps_set_sucess=getUBX_ACK(setdm3);
+    sendUBX_P(setdm3, sizeof(setdm3)/sizeof(uint8_t));
+    gps_set_sucess=getUBX_ACK_P(setdm3);
   }
 }
 void gps_get_position()
@@ -482,10 +488,11 @@ void gps_get_position()
   GPSerror = 0;
   Serial.flush();
   // Request a NAV-POSLLH message from the GPS
-  uint8_t request[8] = {
+  PROGMEM static const uint8_t request[8] = {
     0xB5, 0x62, 0x01, 0x02, 0x00, 0x00, 0x03,
-    0x0A                                                                                                                              };
-  sendUBX(request, 8);
+    0x0A
+  };
+  sendUBX_P(request, 8);
 
   // Get the message back from the GPS
   gps_get_data();
@@ -534,10 +541,11 @@ void gps_get_time()
   GPSerror = 0;
   Serial.flush();
   // Send a NAV-TIMEUTC message to the receiver
-  uint8_t request[8] = {
+  PROGMEM static const uint8_t request[8] = {
     0xB5, 0x62, 0x01, 0x21, 0x00, 0x00,
-    0x22, 0x67                                                                                                                            };
-  sendUBX(request, 8);
+    0x22, 0x67
+  };
+  sendUBX_P(request, 8);
 
   // Get the message back from the GPS
   gps_get_data();
@@ -584,21 +592,24 @@ uint16_t gps_CRC16_checksum (char *string)
 
 void setGPS_PowerSaveMode() {
   // Power Save Mode 
-  uint8_t setPSM[] = { 
-    0xB5, 0x62, 0x06, 0x11, 0x02, 0x00, 0x08, 0x01, 0x22, 0x92                                                                                           }; // Setup for Power Save Mode (Default Cyclic 1s)
-  sendUBX(setPSM, sizeof(setPSM)/sizeof(uint8_t));
+  PROGMEM static const uint8_t setPSM[] = { 
+    0xB5, 0x62, 0x06, 0x11, 0x02, 0x00, 0x08, 0x01, 0x22, 0x92
+  }; // Setup for Power Save Mode (Default Cyclic 1s)
+  sendUBX_P(setPSM, sizeof(setPSM)/sizeof(uint8_t));
 }
 
 void setGps_MaxPerformanceMode() {
   //Set GPS for Max Performance Mode
-  uint8_t setMax[] = { 
-    0xB5, 0x62, 0x06, 0x11, 0x02, 0x00, 0x08, 0x00, 0x21, 0x91                                                                                           }; // Setup for Max Power Mode
-  sendUBX(setMax, sizeof(setMax)/sizeof(uint8_t));
+  PROGMEM static const uint8_t setMax[] = { 
+    0xB5, 0x62, 0x06, 0x11, 0x02, 0x00, 0x08, 0x00, 0x21, 0x91
+  }; // Setup for Max Power Mode
+  sendUBX_P(setMax, sizeof(setMax)/sizeof(uint8_t));
 }
 void resetGPS() {
-  uint8_t set_reset[] = {
-    0xB5, 0x62, 0x06, 0x04, 0x04, 0x00, 0xFF, 0x87, 0x00, 0x00, 0x94, 0xF5                                                                 };
-  sendUBX(set_reset, sizeof(set_reset)/sizeof(uint8_t));
+  PROGMEM static const uint8_t set_reset[] = {
+    0xB5, 0x62, 0x06, 0x04, 0x04, 0x00, 0xFF, 0x87, 0x00, 0x00, 0x94, 0xF5
+  };
+  sendUBX_P(set_reset, sizeof(set_reset)/sizeof(uint8_t));
 }
 
 void prepare_data() {
@@ -670,7 +681,6 @@ char tx_image(void)
         ssdv_enc_init(&ssdv, RTTY_CALLSIGN, img_id++);
         //ssdv_enc_set_buffer(&ssdv, pkt);
 	
-	/*
 	while((r = ssdv_enc_get_packet(&ssdv)) == SSDV_FEED_ME)
 	{
                  
@@ -704,8 +714,6 @@ char tx_image(void)
 	rtx_data(pkt, SSDV_PKT_SIZE);
 	
 	return(setup);
-        */
-        return(1);
 }
 
 

@@ -108,8 +108,7 @@ typedef struct
 	uint16_t stbl_len;
 	
 	/* The same for output */
-	uint8_t dtbls[TBL_LEN];
-	uint8_t *ddht[2][2], *ddqt[2];
+	uint8_t *ddht[2][2], *ddqt[2]; /* PROGMEM */
 	uint16_t dtbl_len;
 	
 } ssdv_t;
