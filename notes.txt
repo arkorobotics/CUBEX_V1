@@ -1,0 +1,3 @@
+NOTE:
+
+- Adafruit camera libraries are in the actual arduino1.0.1 folder in program files. A copy is available in the code archived, marked "(MODIFIED)"
