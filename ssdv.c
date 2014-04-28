@@ -95,11 +95,11 @@ PROGMEM static uint8_t const std_dht11[179] = {
 
 /* Helper for returning the current DHT table */
 #define SDHT (s->sdht[s->acpart ? 1 : 0][s->component ? 1 : 0])
-#define DDHT (s->ddht[s->acpart ? 1 : 0][s->component ? 1 : 0])
+#define DDHT pgm_read_byte(&s->ddht[s->acpart ? 1 : 0][s->component ? 1 : 0])
 
 /* Helpers for looking up the current DQT value */
 #define SDQT (s->sdqt[s->component ? 1 : 0][1 + s->acpart])
-#define DDQT (s->ddqt[s->component ? 1 : 0][1 + s->acpart])
+#define DDQT pgm_read_byte(&s->ddqt[s->component ? 1 : 0][1 + s->acpart])
 
 /* Helpers for converting between DQT tables */
 #define AADJ(i) (SDQT == DDQT ? (i) : irdiv(i, DDQT))
@@ -112,15 +112,6 @@ static int irdiv(int i, int div)
 	i = i * 2 / div;
 	if(i & 1) i += (i > 0 ? 1 : -1);
 	return(i / 2);
-}
-
-static void *dtblcpy(ssdv_t *s, const void *src, size_t n)
-{
-	void *r;
-	if(s->dtbl_len + n > TBL_LEN) return(NULL);
-	r = memcpy_P(&s->dtbls[s->dtbl_len], src, n);
-	s->dtbl_len += n;
-	return(r);
 }
 
 static uint32_t crc32(void *data, size_t length)
@@ -672,12 +663,12 @@ char ssdv_enc_init(ssdv_t *s, char *callsign, uint8_t image_id)
 	s->callsign = encode_callsign(callsign);
 	
 	// Prepare the output JPEG tables //
-	s->ddqt[0] = dtblcpy(s, std_dqt0, sizeof(std_dqt0));
-	s->ddqt[1] = dtblcpy(s, std_dqt1, sizeof(std_dqt1));
-	s->ddht[0][0] = dtblcpy(s, std_dht00, sizeof(std_dht00));
-	s->ddht[0][1] = dtblcpy(s, std_dht01, sizeof(std_dht01));
-	s->ddht[1][0] = dtblcpy(s, std_dht10, sizeof(std_dht10));
-	s->ddht[1][1] = dtblcpy(s, std_dht11, sizeof(std_dht11));
+	s->ddqt[0] = std_dqt0;
+	s->ddqt[1] = std_dqt1;
+	s->ddht[0][0] = std_dht00;
+	s->ddht[0][1] = std_dht01;
+	s->ddht[1][0] = std_dht10;
+	s->ddht[1][1] = std_dht11;
 	
 	return(SSDV_OK);
 }
