@@ -95,7 +95,7 @@ PROGMEM static uint8_t const std_dht11[179] = {
 
 /* Helper for returning the current DHT table */
 #define SDHT (s->sdht[s->acpart ? 1 : 0][s->component ? 1 : 0])
-#define DDHT pgm_read_byte(&s->ddht[s->acpart ? 1 : 0][s->component ? 1 : 0])
+#define DDHT (s->ddht[s->acpart ? 1 : 0][s->component ? 1 : 0])
 
 /* Helpers for looking up the current DQT value */
 #define SDQT (s->sdqt[s->component ? 1 : 0][1 + s->acpart])
@@ -200,9 +200,9 @@ static inline char jpeg_dht_lookup_symbol(ssdv_t *s, uint8_t symbol, uint16_t *b
 	
 	for(cw = 1; cw <= 16; cw++)
 	{
-		for(n = dht[cw]; n > 0; n--)
+		for(n = pgm_read_byte(&dht[cw]); n > 0; n--)
 		{
-			if(*ss == symbol)
+			if(pgm_read_byte(ss) == symbol)
 			{
 				/* Found a match */
 				*bits = code;

@@ -109,7 +109,6 @@ typedef struct
 	
 	/* The same for output */
 	uint8_t *ddht[2][2], *ddqt[2]; /* PROGMEM */
-	uint16_t dtbl_len;
 	
 } ssdv_t;
 
