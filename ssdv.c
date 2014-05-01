@@ -200,9 +200,9 @@ static inline char jpeg_dht_lookup_symbol(ssdv_t *s, uint8_t symbol, uint16_t *b
 	
 	for(cw = 1; cw <= 16; cw++)
 	{
-		for(n = progmem_read_byte(&dht[cw]); n > 0; n--)
+		for(n = pgm_read_byte(&dht[cw]); n > 0; n--)
 		{
-			if(progmem_read_byte(ss) == symbol)
+			if(pgm_read_byte(ss) == symbol)
 			{
 				/* Found a match */
 				*bits = code;
