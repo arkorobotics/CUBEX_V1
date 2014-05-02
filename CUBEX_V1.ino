@@ -117,7 +117,7 @@ void setup() {
   }
   delay(1000);
   
-  cam.setImageSize(VC0706_640x480);
+  cam.setImageSize(VC0706_320x240);
 
   uint8_t imgsize = cam.getImageSize();
   /*
@@ -137,12 +137,12 @@ void setup() {
   //Setup
   pinMode(STATUS_LED, OUTPUT); 
   
-  ///pinMode(GPS_ENABLE_PIN,OUTPUT);
-  ///digitalWrite(GPS_ENABLE_PIN,LOW);
+  pinMode(GPS_ENABLE_PIN,OUTPUT);
+  digitalWrite(GPS_ENABLE_PIN,LOW);
   
   pinMode(SI446x_GPIO_PIN, OUTPUT);
   digitalWrite(SI446x_GPIO_PIN, LOW);
-  delay(1000);
+  
   // THE FOLLOWING PINS HAVE NOT YET BEEN CONFIGURED!!
     // START
     //pinMode(CAM_TX_PIN, INPUT); 
@@ -156,9 +156,9 @@ void setup() {
   
   
   blinkled(6);
-  ///Serial.begin(9600);    // GPS Serial Communication (RX/TX Pins)
+  Serial.begin(9600);    // GPS Serial Communication (RX/TX Pins)
   blinkled(5);
-  ///resetGPS();
+  resetGPS();
   blinkled(4);
   wait(500);
   blinkled(3);
@@ -172,7 +172,7 @@ void setup() {
 
   digitalWrite(SI446x_GPIO_PIN, HIGH);
   blinkled(2);
-  delay(1000);///setupGPS();
+  setupGPS();
   blinkled(1);
   //initialise_interrupt();  // This is the old TIMER0 interrupt
   
@@ -181,13 +181,12 @@ void setup() {
 #endif
   
   rtx_init();    // Setup RTTY/Interrupt
-  delay(1000);
 }
 
 void loop()
 {
   delay(10);
-  /*
+  
   oldhour=hour;
   oldminute=minute;
   oldsecond=second;
@@ -260,8 +259,8 @@ void loop()
     maxalt=alt;
   }
   lockvariables=1;
-  */
-  /*
+  
+  
   sprintf_P(txstring, PSTR("$$$$$CUBEX1,%i,%02d:%02d:%02d,%s%i.%05ld,%s%i.%05ld,%ld,%d,%i,%i"),count, hour, minute, second,lat < 0 ? "-" : "",lat_int,lat_dec,lon < 0 ? "-" : "",lon_int,lon_dec, maxalt,sats,errorstatus,cameracode);
 
   sprintf_P(txstring, PSTR("%s*%04X\n"), txstring, gps_CRC16_checksum(txstring));
@@ -269,7 +268,7 @@ void loop()
   lockvariables=0;
   txstringlength=strlen(txstring);
   rtx_string(txstring);
-  */
+  count++;
   char testvars = tx_image();
 }    
 
@@ -677,7 +676,7 @@ char tx_image(void)
         if(!setup)
 	{
           setup = -1;
-          cam.setImageSize(VC0706_640x480);
+          cam.setImageSize(VC0706_320x240);
 		
           imgsize = cam.getImageSize();
           cam.takePicture();
@@ -707,10 +706,10 @@ char tx_image(void)
 		// Something went wrong! //
 		//c3_close();
 		//setup = 0;
-	        rtx_string_P(PSTR("$$" RTTY_CALLSIGN ":ssdv_enc_get_packet() failed again\n"));
+	        //rtx_string_P(PSTR("$$" RTTY_CALLSIGN ":ssdv_enc_get_packet() failed again\n"));
                 //snprintf_P((char *) img, 64, PSTR("$$" RTTY_CALLSIGN ":Camera error %d\n"), r);
 		//rtx_string((char *) img);
-		return(setup);
+		//return(setup);
 	}
 	
 	if(!(jpglen > 0))
@@ -718,6 +717,7 @@ char tx_image(void)
 		// The end of the image has been reached //
 		//c3_close();
 		setup = 0;
+                cam.resumeVideo();
 	}
 	
 	// Got the packet! Transmit it //
