@@ -117,7 +117,7 @@ void setup() {
   }
   delay(1000);
   
-  cam.setImageSize(VC0706_320x240);
+  cam.setImageSize(VC0706_640x480);
 
   uint8_t imgsize = cam.getImageSize();
   /*
@@ -142,7 +142,7 @@ void setup() {
   
   pinMode(SI446x_GPIO_PIN, OUTPUT);
   digitalWrite(SI446x_GPIO_PIN, LOW);
-  
+  delay(1000);
   // THE FOLLOWING PINS HAVE NOT YET BEEN CONFIGURED!!
     // START
     //pinMode(CAM_TX_PIN, INPUT); 
@@ -172,16 +172,16 @@ void setup() {
 
   digitalWrite(SI446x_GPIO_PIN, HIGH);
   blinkled(2);
-  ///setupGPS();
+  delay(1000);///setupGPS();
   blinkled(1);
   //initialise_interrupt();  // This is the old TIMER0 interrupt
-
+  
 #ifdef POWERSAVING
   ADCSRA = 0;
 #endif
   
   rtx_init();    // Setup RTTY/Interrupt
-
+  delay(1000);
 }
 
 void loop()
@@ -677,7 +677,7 @@ char tx_image(void)
         if(!setup)
 	{
           setup = -1;
-          cam.setImageSize(VC0706_320x240);
+          cam.setImageSize(VC0706_640x480);
 		
           imgsize = cam.getImageSize();
           cam.takePicture();
