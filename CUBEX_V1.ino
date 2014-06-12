@@ -710,6 +710,8 @@ char tx_image(void)
                 //snprintf_P((char *) img, 64, PSTR("$$" RTTY_CALLSIGN ":Camera error %d\n"), r);
 		//rtx_string((char *) img);
 		//return(setup);
+                setup = 0;
+                cam.resumeVideo();
 	}
 	
 	if(!(jpglen > 0))
@@ -720,6 +722,7 @@ char tx_image(void)
                 cam.resumeVideo();
 	}
 	
+        cameracode = r;
 	// Got the packet! Transmit it //
 	rtx_data(pkt, SSDV_PKT_SIZE);
 	
